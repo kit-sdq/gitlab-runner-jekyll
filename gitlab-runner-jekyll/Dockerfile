@@ -1,6 +1,6 @@
 # Updated from https://gitlab.com/gitlab-org/gitlab-runner/-/tree/main/dockerfiles/runner/ubuntu?ref_type=heads
-ARG BASE_IMAGE=ubuntu:24.04
-FROM $BASE_IMAGE AS base
+FROM ubuntu:24.04 AS gitlab-runner
+
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -y && \
     apt-get install -y --no-install-recommends \
@@ -13,17 +13,22 @@ RUN apt-get update -y && \
         openssh-client \
     && rm -rf /var/lib/apt/lists/*
 
-ARG DOCKER_MACHINE_VERSION
 ARG DUMB_INIT_VERSION=1.2.5
+ARG GITLAB_RUNNER_VERSION=17.4.0
 
-RUN wget -O /tmp/gitlab-runner_amd64.deb https://gitlab-runner-downloads.s3.amazonaws.com/v17.4.0/deb/gitlab-runner_amd64.deb
-COPY --chmod=755 install-deps install-gitlab-runner /tmp/
-RUN /tmp/install-deps "${TARGETPLATFORM}" "${DOCKER_MACHINE_VERSION}" "${DUMB_INIT_VERSION}"
-RUN rm -rf /tmp/* /etc/gitlab-runner/.runner_system_id
+RUN wget -O /tmp/gitlab-runner.deb https://gitlab-runner-downloads.s3.amazonaws.com/v${GITLAB_RUNNER_VERSION}/deb/gitlab-runner_amd64.deb && \
+    dpkg -i /tmp/gitlab-runner.deb && \ 
+    apt-get update && \
+    apt-get -f install -y && \
+    rm -rf /var/lib/apt/lists/* && \
+    gitlab-runner --version && \
+    mkdir -p /etc/gitlab-runner/certs && \
+    chmod -R 700 /etc/gitlab-runner && \
+    curl -L "https://github.com/Yelp/dumb-init/releases/download/v${DUMB_INIT_VERSION}/dumb-init_${DUMB_INIT_VERSION}_x86_64" -o /tmp/dumb-init && \
+    install -m 555 -o 0 -g 0 /tmp/dumb-init /usr/bin/dumb-init && \
+    dumb-init --version && \
+    rm -rf /tmp/* /etc/gitlab-runner/.runner_system_id
 
-FROM $BASE_IMAGE AS gitlab-runner
-
-COPY --from=base / /
 COPY --chmod=755 entrypoint /
 
 STOPSIGNAL SIGQUIT
