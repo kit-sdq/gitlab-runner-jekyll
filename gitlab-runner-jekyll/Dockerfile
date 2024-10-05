@@ -45,7 +45,7 @@ RUN echo "Installing needed dependencies" \
   build-essential \
   zlib1g-dev \
   jupyter-nbconvert \
-  npm \
+  npm && \
   apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 RUN echo "Fixing locales" \
