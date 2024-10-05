@@ -1,7 +1,42 @@
+# Updated from https://gitlab.com/gitlab-org/gitlab-runner/-/tree/main/dockerfiles/runner/ubuntu?ref_type=heads
+ARG BASE_IMAGE=ubuntu:24.04
+FROM $BASE_IMAGE AS base
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update -y && \
+    apt-get install -y --no-install-recommends \
+        apt-transport-https \
+        ca-certificates \
+        curl \
+        git git-lfs \
+        wget \
+        tzdata \
+        openssh-client \
+    && rm -rf /var/lib/apt/lists/*
+
+ARG DOCKER_MACHINE_VERSION
+ARG DUMB_INIT_VERSION=1.2.5
+
+RUN wget -O /tmp/gitlab-runner_amd64.deb https://gitlab-runner-downloads.s3.amazonaws.com/v17.4.0/deb/gitlab-runner_amd64.deb
+COPY --chmod=755 install-deps install-gitlab-runner /tmp/
+RUN /tmp/install-deps "${TARGETPLATFORM}" "${DOCKER_MACHINE_VERSION}" "${DUMB_INIT_VERSION}"
+RUN rm -rf /tmp/* /etc/gitlab-runner/.runner_system_id
+
+FROM $BASE_IMAGE AS gitlab-runner
+
+COPY --from=base / /
+COPY --chmod=755 entrypoint /
+
+STOPSIGNAL SIGQUIT
+VOLUME ["/etc/gitlab-runner", "/home/gitlab-runner"]
+ENTRYPOINT ["/usr/bin/dumb-init", "/entrypoint"]
+CMD ["run", "--user=gitlab-runner", "--working-directory=/home/gitlab-runner"]
+
+### CUSTOM IMAGE with RUBY
+
 ARG RUBY_INSTALLER_VERSION=0.9.3
 ARG RUBY_VERSION=3.2.2
 
-FROM gitlab/gitlab-runner:latest
+FROM gitlab-runner
 
 RUN echo "Installing needed dependencies" \
   && apt-get update && apt-get install -y --no-install-recommends \
