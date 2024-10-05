@@ -46,7 +46,6 @@ RUN echo "Installing needed dependencies" \
   zlib1g-dev \
   jupyter-nbconvert \
   npm \
-  python3-pip && \
   apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 RUN echo "Fixing locales" \
@@ -56,8 +55,8 @@ RUN echo "Fixing locales" \
 ENV LC_ALL=en_US.UTF-8
 ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US.UTF-8
-ENV JEKYLL_ENV=production
 
+ENV JEKYLL_ENV=production
 ARG RUBY_INSTALLER_VERSION
 ARG RUBY_VERSION
 # https://github.com/postmodern/ruby-install/releases/download/v$RUBY_INSTALLER_VERSION/ruby-install-$RUBY_INSTALLER_VERSION.tar.gz
@@ -71,5 +70,4 @@ RUN wget -O ruby-install.tar.gz "https://github.com/postmodern/ruby-install/rele
     rm -rf ruby-install* && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
-RUN pip3 install --upgrade jupyter
 RUN npm install -g purgecss
