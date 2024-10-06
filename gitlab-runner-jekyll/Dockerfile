@@ -52,6 +52,7 @@ RUN echo "Installing needed dependencies" \
   zlib1g-dev \
   jupyter-nbconvert \
   npm && \
+  rsync && \
   apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 RUN echo "Fixing locales" \
@@ -75,6 +76,8 @@ RUN wget -O ruby-install.tar.gz "https://github.com/postmodern/ruby-install/rele
     cd .. && \
     rm -rf ruby-install* && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
+
+ENV GEM_HOME=/home/gitlab-runner/.gems
 
 RUN npm install -g purgecss
 
