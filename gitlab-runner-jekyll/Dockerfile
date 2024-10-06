@@ -40,6 +40,7 @@ CMD ["run", "--user=gitlab-runner", "--working-directory=/home/gitlab-runner"]
 
 ARG RUBY_INSTALLER_VERSION=0.9.3
 ARG RUBY_VERSION=3.2.2
+ARG LYCHEE_VERSION=0.15.1
 
 FROM gitlab-runner
 
@@ -76,3 +77,10 @@ RUN wget -O ruby-install.tar.gz "https://github.com/postmodern/ruby-install/rele
     apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 RUN npm install -g purgecss
+
+RUN echo "Installing lychee" && \
+    wget -O lychee.tar.gz "https://github.com/lycheeverse/lychee/releases/download/v${LYCHEE_VERSION}/lychee-v${LYCHEE_VERSION}-x86_64-unknown-linux-gnu.tar.gz" && \
+    tar -xzf lychee.tar.gz && \
+    mv lychee /usr/bin/lychee && \
+    rm -rf lychee.tar.gz
+
